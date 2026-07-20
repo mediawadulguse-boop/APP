@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Monitor & Edit Status</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
+    
+    <style>
+        body { font-family: 'Poppins', sans-serif; background-color: #f4f6f9; color: #212529; }
+        
+        /* Whitespace & Layout Improvement */
+        .card-custom { border: none; border-radius: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.03); background: #ffffff; }
+        .gap-custom { gap: 1rem; }
+        
+        /* Table Styles */
+        .table th { background-color: #f8f9fa; color: #495057; font-weight: 600; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px; padding: 16px 24px; border-bottom: 2px solid #edf2f7; cursor: pointer; user-select: none; }
+        .table th:hover { background-color: #edf2f7; }
+        .table td { padding: 16px 24px; vertical-align: middle; border-bottom: 1px solid #edf2f7; font-size: 0.88rem; }
+        .table tbody tr { cursor: pointer; transition: background-color 0.2s; }
+        .table tbody tr:hover { background-color: #f8fafc; }
+        
+        /* Badges */
+        .badge-status { padding: 6px 14px; border-radius: 50rem; font-weight: 600; font-size: 0.75rem; display: inline-flex; align-items: center; }
+        .status-draft { background-color: #e2e8f0; color: #4a5568; }
+        .status-approve { background-color: #e0f2fe; color: #0369a1; }
+        .status-proses { background-color: #fef3c7; color: #b45309; }
+        .status-publish { background-color: #dcfce7; color: #15803d; }
+        .status-batal { background-color: #fee2e2; color: #b91c1c; }
+        .status-insight { background-color: #f3e8ff; color: #7e22ce; }
+        .status-kosong { background-color: #f3f4f6; color: #6b7280; }
+
+        .pilar-badge { padding: 6px 12px; border-radius: 8px; font-weight: 600; font-size: 0.75rem; display: inline-block; }
+        .pilar-tindak-lanjut { background-color: #fae8ff; color: #a21caf; }
+        .pilar-kasitau-guse { background-color: #fef08a; color: #854d0e; }
+        .pilar-jember-stats { background-color: #fce7f3; color: #db2777; }
+        .pilar-kabar-guse { background-color: #dcfce7; color: #16a34a; }
+        .pilar-jember-punya { background-color: #ffedd5; color: #ea580c; }
+        .pilar-sidak-guse { background-color: #e2e8f0; color: #4a5568; }
+        .pilar-default { background-color: #f3f4f6; color: #1f2937; }
+
+        /* UI Controls */
+        .btn-action { font-size: 0.85rem; border-radius: 10px; padding: 8px 16px; font-weight: 500; position: relative; z-index: 10; }
+        .search-box { border-radius: 12px; padding: 12px 18px; border: 1px solid #cbd5e1; box-shadow: none; color: #475569; background-color: #f8fafc; transition: all 0.2s; }
+        .search-box:focus { border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59,130,246,0.1); background-color: #ffffff; }
+        .stat-card { border-radius: 14px; border: none; transition: transform 0.2s, box-shadow 0.2s; }
+        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.05) !important; }
+        .th-sort-icon { font-size: 0.7rem; margin-left: 5px; color: #cbd5e1; }
+        
+        .detail-item { text-align: left; margin-bottom: 12px; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px; }
+        .detail-label { font-weight: 600; font-size: 0.8rem; color: #64748b; text-transform: uppercase; }
+        .detail-value { font-size: 0.95rem; color: #1e293b; margin-top: 2px; white-space: pre-line; }
+        
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Calendar Custom Styles */
+        .fc-theme-standard th { background-color: #f8f9fa; color: #495057; font-weight: 600; font-family: 'Poppins'; padding: 10px 0; }
+        .fc-event { cursor: pointer; border-radius: 6px; border: none; font-size: 0.75rem; font-weight: 500; overflow: hidden; margin-bottom: 3px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .fc-toolbar-title { font-size: 1.35rem !important; font-weight: 700; color: #1e293b; }
+        .fc-button-primary { background-color: #3b82f6 !important; border-color: #3b82f6 !important; border-radius: 8px !important; padding: 6px 14px !important; }
+        .fc-button-active { background-color: #1d4ed8 !important; }
+        .fc-today-button { text-transform: capitalize; }
+        
+        /* Tabs Navbar */
+        .nav-pills .nav-link { font-weight: 600; color: #64748b; border-radius: 12px; margin-right: 12px; padding: 10px 20px; transition: all 0.2s; }
+        .nav-pills .nav-link:hover { background-color: #f1f5f9; }
+        .nav-pills .nav-link.active { background-color: #3b82f6; color: white; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3); }
+
+        /* Custom Modern Forms UI */
+        .chip-radio { display: none; }
+        .chip-label { border: 1px solid #cbd5e1; border-radius: 50rem; padding: 6px 16px; font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: all 0.2s ease; background: #fff; color: #475569; margin-right: 6px; margin-bottom: 8px; display: inline-block; }
+        .chip-label:hover { background: #f1f5f9; }
+        .chip-radio:checked + .chip-label { background: #3b82f6; border-color: #3b82f6; color: white; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.2); }
+        .form-section-title { font-size: 0.85rem; font-weight: 700; color: #475569; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 0.5px; }
+        .input-modern { border-radius: 10px; border: 1px solid #cbd5e1; background-color: #f8fafc; padding: 10px 15px; transition: all 0.3s; }
+        .input-modern:focus { background-color: #fff; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+        
+        @media (max-width: 767.98px) {
+            .fc-toolbar-title { font-size: 1.1rem !important; }
+            .fc .fc-toolbar.fc-header-toolbar { flex-wrap: wrap; gap: 12px; justify-content: center; margin-bottom: 1.5rem !important; }
+            .card-custom { padding: 1.5rem !important; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid px-4 py-5">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+        <div>
+            <h3 class="fw-bold mb-1"><i class="fa-solid fa-layer-group text-primary me-2"></i> Monitor Data Konten</h3>
+            <p class="text-muted mb-0 small">Menampilkan data sinkron dari Google Spreadsheet</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-success btn-action" onclick="openCreateModal()">
+                <i class="fa-solid fa-plus me-1"></i> Buat Brief Baru
+            </button>
+            <button class="btn btn-primary btn-action" onclick="loadData()">
+                <i class="fa-solid fa-arrows-rotate me-1"></i> Refresh Data
+            </button>
+        </div>
+    </div>
+
+    <!-- Statistik Cards -->
+    <div class="row g-3 mb-5">
+        <div class="col-6 col-md-auto flex-fill"><div class="card stat-card bg-white shadow-sm p-4 border-start border-4 border-secondary"><small class="text-muted fw-medium d-block mb-1">Draft</small><h5 class="fw-bold mb-0 text-secondary" id="count-draft">0</h5></div></div>
+        <div class="col-6 col-md-auto flex-fill"><div class="card stat-card bg-white shadow-sm p-4 border-start border-4 border-info"><small class="text-muted fw-medium d-block mb-1">Approve</small><h5 class="fw-bold mb-0 text-info" id="count-approve">0</h5></div></div>
+        <div class="col-6 col-md-auto flex-fill"><div class="card stat-card bg-white shadow-sm p-4 border-start border-4 border-warning"><small class="text-muted fw-medium d-block mb-1">Proses</small><h5 class="fw-bold mb-0 text-warning" id="count-proses">0</h5></div></div>
+        <div class="col-6 col-md-auto flex-fill"><div class="card stat-card bg-white shadow-sm p-4 border-start border-4 border-success"><small class="text-muted fw-medium d-block mb-1">Publish</small><h5 class="fw-bold mb-0 text-success" id="count-publish">0</h5></div></div>
+        <div class="col-6 col-md-auto flex-fill"><div class="card stat-card bg-white shadow-sm p-4 border-start border-4" style="border-color: #a855f7 !important;"><small class="text-muted fw-medium d-block mb-1">Insight</small><h5 class="fw-bold mb-0" style="color: #a855f7;" id="count-insight">0</h5></div></div>
+        <div class="col-6 col-md-auto flex-fill"><div class="card stat-card bg-white shadow-sm p-4 border-start border-4 border-primary"><small class="text-muted fw-medium d-block mb-1">Target Tercapai</small><h5 class="fw-bold mb-0 text-primary" id="count-targetHit">0</h5></div></div>
+        <div class="col-6 col-md-auto flex-fill"><div class="card stat-card bg-white shadow-sm p-4 border-start border-4 border-danger"><small class="text-muted fw-medium d-block mb-1">Target Meleset</small><h5 class="fw-bold mb-0 text-danger" id="count-targetMiss">0</h5></div></div>
+    </div>
+
+    <!-- Tabs Nav -->
+    <ul class="nav nav-pills mb-4 px-2" id="viewTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="table-tab" data-bs-toggle="pill" data-bs-target="#table-view" type="button" role="tab"><i class="fa-solid fa-list me-2"></i>Tabel Data</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="calendar-tab" data-bs-toggle="pill" data-bs-target="#calendar-view" type="button" role="tab" onclick="setTimeout(() => calendar.render(), 150)"><i class="fa-solid fa-calendar-day me-2"></i>Kalender Konten</button>
+        </li>
+    </ul>
+
+    <!-- View Contents -->
+    <div class="tab-content" id="viewTabsContent">
+        <!-- Table View -->
+        <div class="tab-pane fade show active" id="table-view" role="tabpanel">
+            <div class="card card-custom p-4 p-md-5">
+                <div class="row gap-custom align-items-center mb-4">
+                    <div class="col-12 col-md-3">
+                        <input type="text" id="searchInput" class="form-control search-box" placeholder="Cari kata kunci..." onkeyup="filterAndSearchTable()">
+                    </div>
+                    <div class="col-12 col-md-2">
+                        <input type="month" id="monthFilter" class="form-control search-box" onchange="filterAndSearchTable()" title="Filter Bulan">
+                    </div>
+                    <div class="col-12 col-md-auto ms-md-auto">
+                        <div class="d-flex flex-wrap gap-2 justify-content-md-end align-items-center">
+                            <span class="small text-muted me-2 fw-medium">Filter:</span>
+                            <div class="btn-group shadow-sm" role="group">
+                                <input type="radio" class="btn-check" name="statusFilter" id="filterAll" value="all" checked onchange="filterAndSearchTable()">
+                                <label class="btn btn-outline-secondary px-3 py-2" for="filterAll">Semua</label>
+                                
+                                <input type="radio" class="btn-check" name="statusFilter" id="filterDraft" value="draft" onchange="filterAndSearchTable()">
+                                <label class="btn btn-outline-secondary py-2" for="filterDraft">Draft</label>
+                                
+                                <input type="radio" class="btn-check" name="statusFilter" id="filterApprove" value="approve" onchange="filterAndSearchTable()">
+                                <label class="btn btn-outline-info py-2" for="filterApprove">Approve</label>
+                                
+                                <input type="radio" class="btn-check" name="statusFilter" id="filterProses" value="proses" onchange="filterAndSearchTable()">
+                                <label class="btn btn-outline-warning py-2" for="filterProses">Proses</label>
+                                
+                                <input type="radio" class="btn-check" name="statusFilter" id="filterPublish" value="publish" onchange="filterAndSearchTable()">
+                                <label class="btn btn-outline-success py-2" for="filterPublish">Publish</label>
+                                
+                                <input type="radio" class="btn-check" name="statusFilter" id="filterInsight" value="insight" onchange="filterAndSearchTable()">
+                                <label class="btn btn-outline-dark btn-sm" style="color: #7e22ce; border-color: #7e22ce;" for="filterInsight">Insight</label>
+                                
+                                <input type="radio" class="btn-check" name="statusFilter" id="filterBatal" value="batal" onchange="filterAndSearchTable()">
+                                <label class="btn btn-outline-danger btn-sm" for="filterBatal">Batal</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0" id="mainTable">
+                        <thead><tr id="tableHead"></tr></thead>
+                        <tbody id="tableBody">
+                            <tr><td colspan="100" class="text-center py-5 text-muted"><div class="spinner-border text-primary spinner-border-sm me-2"></div> Memuat data...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Calendar View -->
+        <div class="tab-pane fade" id="calendar-view" role="tabpanel">
+            <div class="card card-custom p-4 p-md-5">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-4">
+                    <h5 class="fw-bold mb-0"><i class="fa-regular fa-calendar-check text-primary me-2"></i> Jadwal Publikasi</h5>
+                    <div class="btn-group bg-light rounded p-1 border shadow-sm" role="group">
+                        <input type="radio" class="btn-check" name="calMode" id="modeDeadline" value="deadline" checked onchange="updateCalendarEvents()">
+                        <label class="btn btn-outline-primary border-0 rounded px-3 py-2 fw-medium" for="modeDeadline">
+                            <i class="fa-regular fa-calendar-days me-1"></i> Mode Deadline
+                        </label>
+                        <input type="radio" class="btn-check" name="calMode" id="modeProduksi" value="produksi" onchange="updateCalendarEvents()">
+                        <label class="btn btn-outline-warning border-0 rounded px-3 py-2 fw-medium" for="modeProduksi">
+                            <i class="fa-solid fa-person-digging me-1"></i> Mode Produksi (Aktif)
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="d-flex flex-wrap gap-3 mb-4 px-2 p-3 bg-light rounded-3 border border-light">
+                    <small class="text-muted fw-bold me-2"><i class="fa-solid fa-palette me-1"></i> Warna Pilar:</small>
+                    <small><i class="fa-solid fa-circle" style="color: #a21caf;"></i> Tindak Lanjut</small>
+                    <small><i class="fa-solid fa-circle" style="color: #854d0e;"></i> Kasitau Gus'e</small>
+                    <small><i class="fa-solid fa-circle" style="color: #db2777;"></i> Jember Stats</small>
+                    <small><i class="fa-solid fa-circle" style="color: #16a34a;"></i> Kabar Gus'e</small>
+                    <small><i class="fa-solid fa-circle" style="color: #ea580c;"></i> Jember Punya</small>
+                    <small><i class="fa-solid fa-circle" style="color: #4a5568;"></i> Sidak Gus'e</small>
+                    <small class="ms-md-auto text-secondary"><i class="fa-solid fa-square shadow-sm" style="color: #f1f5f9; border: 1px solid #cbd5e1;"></i> Draft (Abu-abu)</small>
+                </div>
+                <div id="calendar" class="w-100"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL CREATE BRIEF -->
+<div class="modal fade" id="modalCreateBrief" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content" style="border-radius: 20px; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.15);">
+            <div class="modal-header border-0 pb-3 pt-4 px-4 px-md-5 bg-white rounded-top-4">
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-folder-plus text-success me-2"></i> Buat Brief Konten Baru</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body bg-light px-4 px-md-5 py-4">
+                <form id="createBriefForm">
+                    <div class="row g-4">
+                        
+                        <!-- 1. Judul -->
+                        <div class="col-12">
+                            <label class="form-section-title">1. Judul Konten</label>
+                            <input type="text" id="cb_judul" class="form-control input-modern" placeholder="Masukkan judul brief konten..." required>
+                        </div>
+                        
+                        <!-- 2. Tujuan -->
+                        <div class="col-md-6">
+                            <label class="form-section-title">2. Tujuan</label>
+                            <div class="bg-white p-3 rounded-3 border" style="border-color: #cbd5e1 !important;">
+                                <div class="form-check mb-2"><input class="form-check-input" type="checkbox" name="cb_tujuan" value="Edukasi" id="t_1"><label class="form-check-label" for="t_1">Edukasi</label></div>
+                                <div class="form-check mb-2"><input class="form-check-input" type="checkbox" name="cb_tujuan" value="Informasi layanan publik" id="t_2"><label class="form-check-label" for="t_2">Informasi layanan publik</label></div>
+                                <div class="form-check mb-2"><input class="form-check-input" type="checkbox" name="cb_tujuan" value="Klarifikasi isu" id="t_3"><label class="form-check-label" for="t_3">Klarifikasi isu</label></div>
+                                <div class="form-check mb-2"><input class="form-check-input" type="checkbox" name="cb_tujuan" value="Promosi program" id="t_4"><label class="form-check-label" for="t_4">Promosi program</label></div>
+                                <div class="form-check mb-2"><input class="form-check-input" type="checkbox" name="cb_tujuan" value="Meningkatkan kepercayaan publik" id="t_5"><label class="form-check-label" for="t_5">Meningkatkan kepercayaan publik</label></div>
+                                <div class="form-check mb-2"><input class="form-check-input" type="checkbox" name="cb_tujuan" value="Mengajak masyarakat berpartisipasi" id="t_6"><label class="form-check-label" for="t_6">Mengajak masyarakat berpartisipasi</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" name="cb_tujuan" value="Lainnya" id="t_lain" onchange="toggleLainnya('t_lain', 'cb_tujuan_lainnya')"><label class="form-check-label" for="t_lain">Lainnya:</label></div>
+                                <input type="text" id="cb_tujuan_lainnya" class="form-control input-modern mt-2 d-none" placeholder="Sebutkan tujuan lainnya...">
+                            </div>
+                        </div>
+
+                        <!-- 4. Target Audience -->
+                        <div class="col-md-6">
+                            <label class="form-section-title">4. Target Audience</label>
+                            <div class="bg-white p-3 rounded-3 border" style="border-color: #cbd5e1 !important;">
+                                <div class="form-check mb-2"><input class="form-check-input" type="checkbox" name="cb_aud" value="Masyarakat umum" id="a_1"><label class="form-check-label" for="a_1">Masyarakat umum</label></div>
+                                <div class="form-check mb-2"><input class="form-check-input" type="checkbox" name="cb_aud" value="Anak muda" id="a_2"><label class="form-check-label" for="a_2">Anak muda</label></div>
+                                <div class="form-check mb-2"><input class="form-check-input" type="checkbox" name="cb_aud" value="Warga desa" id="a_3"><label class="form-check-label" for="a_3">Warga desa</label></div>
+                                <div class="form-check mb-2"><input class="form-check-input" type="checkbox" name="cb_aud" value="ASN" id="a_4"><label class="form-check-label" for="a_4">ASN</label></div>
+                                <div class="form-check mb-2"><input class="form-check-input" type="checkbox" name="cb_aud" value="Pelaku UMKM" id="a_5"><label class="form-check-label" for="a_5">Pelaku UMKM</label></div>
+                                <div class="form-check mb-2"><input class="form-check-input" type="checkbox" name="cb_aud" value="Pelajar" id="a_6"><label class="form-check-label" for="a_6">Pelajar</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" name="cb_aud" value="Lainnya" id="a_lain" onchange="toggleLainnya('a_lain', 'cb_aud_lainnya')"><label class="form-check-label" for="a_lain">Lainnya:</label></div>
+                                <input type="text" id="cb_aud_lainnya" class="form-control input-modern mt-2 d-none" placeholder="Sebutkan audience lainnya...">
+                            </div>
+                        </div>
+
+                        <!-- 3. Alasan & 8. Referensi -->
+                        <div class="col-md-6">
+                            <label class="form-section-title">3. Alasan Membuat Konten</label>
+                            <textarea id="cb_alasan" class="form-control input-modern mb-4" rows="3" placeholder="Jelaskan alasan..."></textarea>
+                            
+                            <label class="form-section-title">8. Referensi</label>
+                            <input type="text" id="cb_referensi" class="form-control input-modern" placeholder="Tautan referensi desain/video...">
+                        </div>
+
+                        <!-- 9. Catatan -->
+                        <div class="col-md-6">
+                            <label class="form-section-title">9. Catatan / Deskripsi Tambahan</label>
+                            <textarea id="cb_catatan" class="form-control input-modern h-100" style="min-height: 140px;" placeholder="Tuliskan catatan khusus atau deskripsi brief..."></textarea>
+                        </div>
+
+                        <!-- 5. Kategori Konten -->
+                        <div class="col-12 mt-4">
+                            <label class="form-section-title">5. Kategori Konten</label>
+                            <div class="d-flex flex-wrap">
+                                <input type="radio" class="chip-radio" name="cb_kat" id="k_1" value="Video" checked><label class="chip-label" for="k_1">Video</label>
+                                <input type="radio" class="chip-radio" name="cb_kat" id="k_2" value="Carousel"><label class="chip-label" for="k_2">Carousel</label>
+                                <input type="radio" class="chip-radio" name="cb_kat" id="k_3" value="Single Post"><label class="chip-label" for="k_3">Single Post</label>
+                                <input type="radio" class="chip-radio" name="cb_kat" id="k_4" value="Live"><label class="chip-label" for="k_4">Live</label>
+                            </div>
+                        </div>
+
+                        <!-- 6. Konten Pilar -->
+                        <div class="col-12">
+                            <label class="form-section-title">6. Konten Pilar</label>
+                            <div class="d-flex flex-wrap">
+                                <input type="radio" class="chip-radio" name="cb_pil" id="p_1" value="Tindak Lanjut" checked><label class="chip-label" for="p_1">Tindak Lanjut</label>
+                                <input type="radio" class="chip-radio" name="cb_pil" id="p_2" value="Kasitau Gus'e"><label class="chip-label" for="p_2">Kasitau Gus'e</label>
+                                <input type="radio" class="chip-radio" name="cb_pil" id="p_3" value="Wadul Warga"><label class="chip-label" for="p_3">Wadul Warga</label>
+                                <input type="radio" class="chip-radio" name="cb_pil" id="p_4" value="Kabar Guse"><label class="chip-label" for="p_4">Kabar Guse</label>
+                                <input type="radio" class="chip-radio" name="cb_pil" id="p_5" value="Jember Stats"><label class="chip-label" for="p_5">Jember Stats</label>
+                                <input type="radio" class="chip-radio" name="cb_pil" id="p_6" value="Jember Punya"><label class="chip-label" for="p_6">Jember Punya</label>
+                                <input type="radio" class="chip-radio" name="cb_pil" id="p_7" value="Sidak Gus'e"><label class="chip-label" for="p_7">Sidak Gus'e</label>
+                                <input type="radio" class="chip-radio" name="cb_pil" id="p_8" value="Infografis"><label class="chip-label" for="p_8">Infografis</label>
+                                <input type="radio" class="chip-radio" name="cb_pil" id="p_9" value="Live"><label class="chip-label" for="p_9">Live</label>
+                            </div>
+                        </div>
+
+                        <!-- 7. Target Metrik -->
+                        <div class="col-12">
+                            <label class="form-section-title">7. Target (Views/Reach/Interactions)</label>
+                            <div class="row g-2">
+                                <div class="col-md-4">
+                                    <input type="text" id="cb_tar_real" class="form-control input-modern" placeholder="Realistis (Cth: 10K)">
+                                </div>
+                                <div class="col-md-4">
+                                    <input type="text" id="cb_tar_opt" class="form-control input-modern" placeholder="Optimis (Cth: 50K)">
+                                </div>
+                                <div class="col-md-4">
+                                    <input type="text" id="cb_tar_amb" class="form-control input-modern" placeholder="Ambisius (Cth: 100K)">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 10. Petugas & Jobdesk -->
+                        <div class="col-12 mt-4">
+                            <div class="bg-white p-4 rounded-4 border shadow-sm" style="border-color: #e2e8f0 !important;">
+                                <label class="form-section-title text-primary"><i class="fa-solid fa-users me-2"></i>10. Penugasan Tim & Jobdesk</label>
+                                <p class="small text-muted mb-3">Centang nama petugas, lalu isi jobdesk mereka jika diperlukan. (Bisa lebih dari satu petugas).</p>
+                                
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="form-check form-switch mb-2">
+                                            <input class="form-check-input p-check" type="checkbox" value="Fathur" id="petugas_Fathur" onchange="toggleJobdesk('Fathur')">
+                                            <label class="form-check-label fw-bold" for="petugas_Fathur">Fathur</label>
+                                        </div>
+                                        <input type="text" id="jobdesk_Fathur" class="form-control input-modern d-none form-control-sm ms-4 w-75" placeholder="Cth: Video Editor, Cameraman">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-check form-switch mb-2">
+                                            <input class="form-check-input p-check" type="checkbox" value="Farhan" id="petugas_Farhan" onchange="toggleJobdesk('Farhan')">
+                                            <label class="form-check-label fw-bold" for="petugas_Farhan">Farhan</label>
+                                        </div>
+                                        <input type="text" id="jobdesk_Farhan" class="form-control input-modern d-none form-control-sm ms-4 w-75" placeholder="Jobdesk Farhan...">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-check form-switch mb-2">
+                                            <input class="form-check-input p-check" type="checkbox" value="Fahmi" id="petugas_Fahmi" onchange="toggleJobdesk('Fahmi')">
+                                            <label class="form-check-label fw-bold" for="petugas_Fahmi">Fahmi</label>
+                                        </div>
+                                        <input type="text" id="jobdesk_Fahmi" class="form-control input-modern d-none form-control-sm ms-4 w-75" placeholder="Jobdesk Fahmi...">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-check form-switch mb-2">
+                                            <input class="form-check-input p-check" type="checkbox" value="Fariq" id="petugas_Fariq" onchange="toggleJobdesk('Fariq')">
+                                            <label class="form-check-label fw-bold" for="petugas_Fariq">Fariq</label>
+                                        </div>
+                                        <input type="text" id="jobdesk_Fariq" class="form-control input-modern d-none form-control-sm ms-4 w-75" placeholder="Jobdesk Fariq...">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-check form-switch mb-2">
+                                            <input class="form-check-input p-check" type="checkbox" value="Niha" id="petugas_Niha" onchange="toggleJobdesk('Niha')">
+                                            <label class="form-check-label fw-bold" for="petugas_Niha">Niha</label>
+                                        </div>
+                                        <input type="text" id="jobdesk_Niha" class="form-control input-modern d-none form-control-sm ms-4 w-75" placeholder="Jobdesk Niha...">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 11 & 12. Tanggal -->
+                        <div class="col-md-6">
+                            <label class="form-section-title">11. Tanggal Take Video</label>
+                            <input type="date" id="cb_tgl_take" class="form-control input-modern">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-section-title">12. Deadline Publikasi</label>
+                            <input type="date" id="cb_deadline" class="form-control input-modern" required>
+                        </div>
+                        
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-0 pt-3 pb-4 px-4 px-md-5">
+                <button type="button" class="btn btn-light rounded-3 px-4" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-success rounded-3 px-4" onclick="submitCreateBrief()"><i class="fa-solid fa-paper-plane me-2"></i> Buat Brief & Tugas</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Update Status Cepat & Modal Edit Data Lengkap -->
+<div class="modal fade" id="modalEdit" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 20px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+            <div class="modal-header border-0 pb-0 pt-4 px-4">
+                <h6 class="modal-title fw-bold">Update Status Konten Cepat</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body px-4 py-4">
+                <input type="hidden" id="editRowNum">
+                
+                <div class="mb-4">
+                    <label class="form-label small text-muted fw-medium">Pilih Status Terbaru</label>
+                    <select class="form-select form-select-lg" id="editStatusSelect" onchange="handleQuickModalVisibility()" style="border-radius: 12px; font-size: 0.95rem; background-color: #f8fafc;">
+                        <option value="Draft">Draft</option>
+                        <option value="Approve">Approve</option>
+                        <option value="Proses">Proses</option>
+                        <option value="Publish">Publish</option>
+                        <option value="Insight">Insight</option>
+                        <option value="Batal">Batal</option>
+                    </select>
+                </div>
+
+                <div class="mb-3 fade-in" id="quickLinkWrapper" style="display: none;">
+                    <label class="form-label small fw-bold text-secondary mb-2">Link Publish</label>
+                    <input type="text" class="form-control px-3 py-2" id="quickLinkInput" placeholder="Masukkan URL postingan..." style="border-radius: 10px; background-color: #f8fafc;">
+                </div>
+
+                <div class="mb-3 fade-in" id="quickInsightWrapper" style="display: none;">
+                    <label class="form-label small fw-bold text-secondary mb-2">Data Insight</label>
+                    <input type="text" class="form-control px-3 py-2" id="quickInsightInput" placeholder="Masukkan jumlah views/reach..." style="border-radius: 10px; background-color: #f8fafc;">
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0 pb-4 px-4">
+                <button type="button" class="btn btn-light rounded-3 px-4" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-primary rounded-3 px-4" onclick="saveStatus()">Simpan Status</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalEditData" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="border-radius: 20px; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.15);">
+            <div class="modal-header border-0 pb-3 pt-4 px-4">
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-pen-to-square text-primary me-2"></i> Edit Data Konten Lengkap</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body bg-light px-4 py-4">
+                <form id="editDataForm">
+                    <input type="hidden" id="editDataRowNum" name="rowNum">
+                    <div id="editFormContainer" class="row g-4"></div>
+                </form>
+            </div>
+            <div class="modal-footer border-0 pt-3 pb-4 px-4">
+                <button type="button" class="btn btn-secondary rounded-3 px-4" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-primary rounded-3 px-4" onclick="saveEditedData()"><i class="fa-solid fa-floppy-disk me-2"></i> Simpan Perubahan</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwcPFrC0hAYuLdRw1XvkKemHEhO_shDZz4sVLVyEAUVLetc71aX5njZG4Qq4rUJw2tW/exec";
+    
+    let globalData = null; 
+    let selectedRowData = null;
+    let modalEditDataInstance = null;
+    let modalStatusInstance = null;
+    let modalCreateBriefInstance = null;
+    let calendar = null;
+    
+    const ALLOWED_HEADERS = ["judul", "konten pilar", "kategori konten", "deadline", "status"];
+    
+    let mappedHeaderIndices = []; 
+    let statusIndexRaw = -1;
+    let linkIndexRaw = -1;
+    let insightIndexRaw = -1;
+    let targetIndexRaw = -1;
+    let dateIndexRaw = -1;
+
+    document.addEventListener("DOMContentLoaded", () => {
+        loadData();
+        modalStatusInstance = new bootstrap.Modal(document.getElementById('modalEdit'));
+        modalEditDataInstance = new bootstrap.Modal(document.getElementById('modalEditData'));
+        modalCreateBriefInstance = new bootstrap.Modal(document.getElementById('modalCreateBrief'));
+        
+        let calendarEl = document.getElementById('calendar');
+        let isMobile = window.innerWidth < 768;
+        
+        // Inisialisasi FullCalendar
+        calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            themeSystem: 'standard',
+            headerToolbar: {
+                left: isMobile ? 'prev,next' : 'prev,next today',
+                center: 'title',
+                right: isMobile ? 'today' : 'dayGridMonth,timeGridWeek'
+            },
+            height: 'auto',
+            locale: 'id',
+            buttonText: { today: 'Hari Ini', month: 'Bulan', week: 'Minggu' },
+            
+            eventContent: function(arg) {
+                let icon = arg.event.extendedProps.iconHtml || '';
+                let title = arg.event.title || '';
+                let fullTitle = arg.event.extendedProps.fullTitle || title;
+                let isDraft = arg.event.extendedProps.isDraft;
+                let pilarColor = arg.event.extendedProps.pilarColor;
+                
+                let colorDot = isDraft ? `<i class="fa-solid fa-circle me-1" style="color: ${pilarColor}; font-size: 0.5rem; vertical-align: middle;"></i>` : '';
+                
+                return {
+                    html: `<div class="px-2 py-1" title="${fullTitle}" style="white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.35; width: 100%;">
+                               ${colorDot}${icon} <span class="ms-1">${title}</span>
+                           </div>`
+                };
+            },
+            eventClick: function(info) {
+                showPopupDetail(info.event.extendedProps.row);
+            }
+        });
+        calendar.render();
+
+        window.addEventListener('resize', () => {
+            if (window.innerWidth < 768) {
+                calendar.setOption('headerToolbar', { left: 'prev,next', center: 'title', right: 'today' });
+            } else {
+                calendar.setOption('headerToolbar', { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek' });
+            }
+        });
+    });
+
+    // ==========================================
+    // LOGIKA CREATE FORM BRIEF
+    // ==========================================
+    function openCreateModal() {
+        document.getElementById('createBriefForm').reset();
+        document.querySelectorAll('.d-none').forEach(el => {
+            if(el.id.includes('lainnya') || el.id.includes('jobdesk')) {
+                el.classList.add('d-none');
+            }
+        });
+        modalCreateBriefInstance.show();
+    }
+
+    function toggleLainnya(checkId, inputId) {
+        let isChecked = document.getElementById(checkId).checked;
+        let inputEl = document.getElementById(inputId);
+        if (isChecked) { inputEl.classList.remove('d-none'); inputEl.focus(); } 
+        else { inputEl.classList.add('d-none'); inputEl.value = ''; }
+    }
+
+    function toggleJobdesk(name) {
+        let isChecked = document.getElementById(`petugas_${name}`).checked;
+        let inputEl = document.getElementById(`jobdesk_${name}`);
+        if (isChecked) { inputEl.classList.remove('d-none'); inputEl.focus(); } 
+        else { inputEl.classList.add('d-none'); inputEl.value = ''; }
+    }
+
+    function getCheckedValuesWithLainnya(nameAttr, lainnyaId) {
+        let vals = [];
+        let checks = document.querySelectorAll(`input[name="${nameAttr}"]:checked`);
+        checks.forEach(c => {
+            if (c.value === 'Lainnya') {
+                let text = document.getElementById(lainnyaId).value;
+                if(text) vals.push(text);
+            } else { vals.push(c.value); }
+        });
+        return vals.join(', ');
+    }
+
+    function submitCreateBrief() {
+        let judul = document.getElementById('cb_judul').value;
+        if (!judul) { Swal.fire('Peringatan', 'Judul Brief harus diisi!', 'warning'); return; }
+
+        let tujuanStr = getCheckedValuesWithLainnya('cb_tujuan', 'cb_tujuan_lainnya');
+        let audStr = getCheckedValuesWithLainnya('cb_aud', 'cb_aud_lainnya');
+        let kategoriVal = document.querySelector('input[name="cb_kat"]:checked') ? document.querySelector('input[name="cb_kat"]:checked').value : '';
+        let pilarVal = document.querySelector('input[name="cb_pil"]:checked') ? document.querySelector('input[name="cb_pil"]:checked').value : '';
+
+        let petugasNames = [];
+        let petugasArray = [];
+        let pChecks = document.querySelectorAll('.p-check:checked');
+        
+        pChecks.forEach(c => {
+            let name = c.value;
+            petugasNames.push(name);
+            let jobdeskRaw = document.getElementById(`jobdesk_${name}`).value;
+            let jobdeskArr = jobdeskRaw.split(',').map(s => s.trim()).filter(s => s !== "");
+            petugasArray.push({ nama: name, jobdesk: jobdeskArr });
+        });
+
+        let today = new Date();
+        let tglBuat = `${today.getDate().toString().padStart(2,'0')}/${(today.getMonth()+1).toString().padStart(2,'0')}/${today.getFullYear()}`;
+
+        let params = new URLSearchParams();
+        params.append('tanggal', tglBuat);
+        params.append('judul', judul);
+        params.append('tujuan', tujuanStr);
+        params.append('alasan', document.getElementById('cb_alasan').value);
+        params.append('audience', audStr);
+        params.append('kategori', kategoriVal);
+        params.append('pilar', pilarVal);
+        params.append('targetReal', document.getElementById('cb_tar_real').value);
+        params.append('targetOpt', document.getElementById('cb_tar_opt').value);
+        params.append('targetAmb', document.getElementById('cb_tar_amb').value);
+        params.append('referensi', document.getElementById('cb_referensi').value);
+        params.append('catatan', document.getElementById('cb_catatan').value);
+        params.append('petugas', petugasNames.join(', '));
+        params.append('tanggalTake', document.getElementById('cb_tgl_take').value);
+        params.append('deadline', document.getElementById('cb_deadline').value);
+        params.append('petugasJSON', JSON.stringify(petugasArray));
+
+        Swal.fire({
+            title: 'Membuat Brief & Tugas...',
+            text: 'Data sedang dikirim ke Google Sheet',
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); }
+        });
+
+        fetch(SCRIPT_URL, { method: 'POST', body: params })
+        .then(res => res.json())
+        .then(data => {
+            if(data.status === 'ok') {
+                Swal.fire('Berhasil!', 'Brief dan Tugas berhasil digenerate di Spreadsheet.', 'success');
+                modalCreateBriefInstance.hide();
+                loadData();
+            } else {
+                throw new Error(data.message || 'Gagal menyimpan');
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            Swal.fire('Selesai', 'Perintah dikirim. Memperbarui dashboard...', 'success');
+            modalCreateBriefInstance.hide();
+            setTimeout(loadData, 1200);
+        });
+    }
+
+    // ==========================================
+    // LOGIKA DASHBOARD (MONITOR DATA)
+    // ==========================================
+    function formatTanggal(dateString) {
+        if (!dateString || dateString === '-' || dateString.trim() === '') return '-';
+        const d = new Date(dateString);
+        if (isNaN(d.getTime())) return dateString; 
+
+        const bulan = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+        return `${d.getDate()} ${bulan[d.getMonth()]} ${d.getFullYear()}`;
+    }
+
+    function loadData() {
+        document.getElementById('tableBody').innerHTML = '<tr><td colspan="100" class="text-center py-5 text-muted"><div class="spinner-border text-primary spinner-border-sm me-2"></div> Memuat data...</td></tr>';
+        
+        fetch(SCRIPT_URL + "?action=readBriefDashboard")
+            .then(res => res.json())
+            .then(data => {
+                globalData = data;
+                if(globalData && globalData.rows) globalData.rows.reverse();
+                
+                if(globalData && globalData.headers) {
+                    statusIndexRaw = globalData.headers.findIndex(h => h && h.toLowerCase().trim() === 'status');
+                    linkIndexRaw = globalData.headers.findIndex(h => h && h.toLowerCase().trim().includes('link'));
+                    insightIndexRaw = globalData.headers.findIndex(h => h && h.toLowerCase().trim().includes('insight'));
+                    targetIndexRaw = globalData.headers.findIndex(h => h && (h.toLowerCase().trim() === 'target realistis' || h.toLowerCase().trim() === 'target'));
+                    dateIndexRaw = globalData.headers.findIndex(h => h && (h.toLowerCase().trim() === 'deadline' || h.toLowerCase().trim() === 'tanggal'));
+                }
+                
+                renderTable();
+                updateCalendarEvents(); 
+            })
+            .catch(err => {
+                document.getElementById('tableBody').innerHTML = `<tr><td colspan="100" class="text-center py-4 text-danger">Gagal mengambil data. Pastikan URL Google Apps Script valid.</td></tr>`;
+            });
+    }
+
+    function getStatusIconHtml(status) {
+        let s = status.toLowerCase().trim();
+        if (s === 'draft') return '<i class="fa-solid fa-file-pen"></i>';
+        if (s === 'approve') return '<i class="fa-solid fa-circle-check"></i>';
+        if (s === 'proses') return '<i class="fa-solid fa-spinner fa-spin-pulse"></i>';
+        if (s === 'publish') return '<i class="fa-solid fa-paper-plane"></i>';
+        if (s === 'insight') return '<i class="fa-solid fa-chart-line"></i>';
+        return '<i class="fa-regular fa-circle"></i>';
+    }
+
+    function updateCalendarEvents() {
+        if (!calendar || !globalData || !globalData.rows) return;
+
+        let mode = document.querySelector('input[name="calMode"]:checked').value;
+        let events = [];
+        
+        let judulIdx = globalData.headers.findIndex(h => h && h.toLowerCase().trim() === 'judul');
+        let pilarIdx = globalData.headers.findIndex(h => h && h.toLowerCase().trim() === 'konten pilar');
+
+        globalData.rows.forEach(row => {
+            let rowDataArray = Array.isArray(row) ? row : (row.data || []);
+            let status = statusIndexRaw !== -1 && rowDataArray[statusIndexRaw] ? rowDataArray[statusIndexRaw].toString().toLowerCase().trim() : 'draft';
+            let date = dateIndexRaw !== -1 ? rowDataArray[dateIndexRaw] : '';
+            let judulAsli = judulIdx !== -1 ? rowDataArray[judulIdx] : 'Tanpa Judul';
+            let pilar = pilarIdx !== -1 ? rowDataArray[pilarIdx] : '';
+
+            if (status === 'batal') return;
+            if (mode === 'produksi' && ['publish', 'insight'].includes(status)) return; 
+
+            if (date) {
+                let d = new Date(date);
+                if (!isNaN(d.getTime())) {
+                    let y = d.getFullYear();
+                    let m = String(d.getMonth() + 1).padStart(2, '0');
+                    let day = String(d.getDate()).padStart(2, '0');
+                    let dateStringLocal = `${y}-${m}-${day}`;
+                    
+                    let basePilarColor = getPilarColorHex(pilar);
+                    let isDraft = (status === 'draft');
+                    
+                    let eventBgColor = isDraft ? '#f1f5f9' : basePilarColor;
+                    let eventBorderColor = isDraft ? '#cbd5e1' : basePilarColor;
+                    let eventTextColor = isDraft ? '#334155' : '#ffffff';
+
+                    events.push({
+                        title: judulAsli, 
+                        start: dateStringLocal,
+                        backgroundColor: eventBgColor,
+                        borderColor: eventBorderColor,
+                        textColor: eventTextColor,
+                        extendedProps: { 
+                            row: row,
+                            fullTitle: judulAsli,
+                            iconHtml: getStatusIconHtml(status),
+                            isDraft: isDraft,
+                            pilarColor: basePilarColor
+                        } 
+                    });
+                }
+            }
+        });
+
+        calendar.removeAllEvents();
+        calendar.addEventSource(events);
+    }
+
+    function getPilarColorHex(val) {
+        if (!val) return '#6b7280'; 
+        let lowerText = val.toLowerCase().trim();
+        if (lowerText === 'tindak lanjut') return '#a21caf';
+        if (lowerText === 'kasitau guse' || lowerText === "kasitau gus'e") return '#854d0e';
+        if (lowerText === 'jember stats') return '#db2777';
+        if (lowerText === 'kabar guse' || lowerText === "kabar gus'e") return '#16a34a';
+        if (lowerText === 'jember punya') return '#ea580c';
+        if (lowerText === 'sidak guse' || lowerText === "sidak gus'e") return '#4a5568';
+        return '#6b7280';
+    }
+
+    function parseNilai(val) {
+        if (!val) return 0;
+        let str = val.toString().toLowerCase().trim();
+        let multiplier = 1;
+
+        if (str.includes('k') || str.includes('ribu')) multiplier = 1000;
+        else if (str.includes('m') || str.includes('jt') || str.includes('juta')) multiplier = 1000000;
+
+        let numStr = str.replace(/[^0-9.,]/g, '');
+        numStr = numStr.replace(/\./g, '').replace(/,/g, '.');
+
+        return (parseFloat(numStr) || 0) * multiplier;
+    }
+
+    function renderTable() {
+        const thead = document.getElementById('tableHead');
+        const tbody = document.getElementById('tableBody');
+        thead.innerHTML = ''; tbody.innerHTML = '';
+
+        if (!globalData || !globalData.headers || !globalData.rows || globalData.rows.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="100" class="text-center py-4">Belum ada data di Spreadsheet.</td></tr>';
+            return;
+        }
+
+        mappedHeaderIndices = [];
+        globalData.headers.forEach((h, index) => {
+            if(!h) return;
+            let cleanHeader = h.toLowerCase().trim();
+            if (ALLOWED_HEADERS.includes(cleanHeader)) {
+                mappedHeaderIndices.push({ originalIndex: index, name: h, cleanName: cleanHeader });
+                let th = document.createElement('th');
+                th.innerHTML = `${h} <i class="fa-solid th-sort-icon"></i>`;
+                thead.appendChild(th);
+            }
+        });
+        
+        let thStatusTarget = document.createElement('th'); thStatusTarget.innerText = "Status Target"; thead.appendChild(thStatusTarget);
+        let thAksi = document.createElement('th'); thAksi.innerText = "Aksi"; thAksi.className = "text-end"; thead.appendChild(thAksi);
+
+        globalData.rows.forEach(row => {
+            let rowDataArray = Array.isArray(row) ? row : (row.data || []);
+            let rowNumber = row.rowNum || 0;
+            let tr = document.createElement('tr');
+            
+            let statusRaw = statusIndexRaw !== -1 && rowDataArray[statusIndexRaw] ? rowDataArray[statusIndexRaw].toString().toLowerCase().trim() : 'draft';
+            if (statusRaw === '') statusRaw = 'draft';
+            tr.setAttribute('data-status', statusRaw);
+
+            let rawDate = dateIndexRaw !== -1 ? (rowDataArray[dateIndexRaw] || '') : '';
+            let dateValForFilter = "";
+            if (rawDate) {
+                let d = new Date(rawDate);
+                if (!isNaN(d.getTime())) { dateValForFilter = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; }
+            }
+            tr.setAttribute('data-date', dateValForFilter);
+
+            let numInsight = insightIndexRaw !== -1 ? parseNilai(rowDataArray[insightIndexRaw]) : 0;
+            let numTarget = targetIndexRaw !== -1 ? parseNilai(rowDataArray[targetIndexRaw]) : 0;
+            tr.setAttribute('data-insight', numInsight);
+            tr.setAttribute('data-target', numTarget);
+            
+            tr.onclick = () => showPopupDetail(row);
+
+            mappedHeaderIndices.forEach(map => {
+                let cell = rowDataArray[map.originalIndex] !== undefined ? rowDataArray[map.originalIndex].toString() : '';
+                let td = document.createElement('td');
+                if (map.cleanName === 'status') { td.innerHTML = getStatusBadge(cell); }
+                else if (map.cleanName === 'konten pilar') { td.innerHTML = getPilarBadge(cell); }
+                else if (map.cleanName.includes('deadline') || map.cleanName.includes('tanggal')) { td.innerText = formatTanggal(cell); }
+                else { td.innerText = cell.length > 40 ? cell.substring(0, 40) + '...' : (cell || '-'); }
+                tr.appendChild(td);
+            });
+
+            let targetHtml = `<span class="badge bg-light text-secondary border">-</span>`;
+            if (statusRaw === 'insight' && insightIndexRaw !== -1 && targetIndexRaw !== -1) {
+                if (numTarget > 0) {
+                    targetHtml = numInsight >= numTarget ? `<span class="badge bg-primary"><i class="fa-solid fa-arrow-trend-up me-1"></i> Tercapai</span>` : `<span class="badge bg-danger"><i class="fa-solid fa-arrow-trend-down me-1"></i> Meleset</span>`;
+                }
+            }
+            let tdTarget = document.createElement('td'); tdTarget.innerHTML = targetHtml; tr.appendChild(tdTarget);
+
+            let tdAksi = document.createElement('td');
+            tdAksi.className = "text-end";
+            tdAksi.innerHTML = `
+                <div class="d-flex justify-content-end gap-2">
+                    <button class="btn btn-outline-secondary btn-action" onclick="openEditModal(event, ${rowNumber})"><i class="fa-solid fa-pen-to-square"></i></button>
+                    <button class="btn btn-primary btn-action" onclick="openModalStatus(event, ${rowNumber})"><i class="fa-solid fa-rotate me-1"></i> Status</button>
+                </div>
+            `;
+            tr.appendChild(tdAksi);
+            tbody.appendChild(tr);
+        });
+
+        filterAndSearchTable();
+    }
+
+    function filterAndSearchTable() {
+        let searchFilter = document.getElementById("searchInput").value.toLowerCase();
+        let radioFilter = document.querySelector('input[name="statusFilter"]:checked').value;
+        let monthFilter = document.getElementById("monthFilter").value;
+        let rows = document.getElementById("tableBody").getElementsByTagName("tr");
+        if (rows.length === 1 && rows[0].innerText.includes("Memuat")) return;
+
+        let counts = { draft: 0, approve: 0, proses: 0, publish: 0, insight: 0, batal: 0, targetHit: 0, targetMiss: 0 };
+
+        for (let i = 0; i < rows.length; i++) {
+            let tr = rows[i];
+            let rowStatus = tr.getAttribute('data-status'); 
+            let rowDate = tr.getAttribute('data-date'); 
+            let textContent = tr.textContent || tr.innerText;
+            
+            let matchesSearch = textContent.toLowerCase().indexOf(searchFilter) > -1; 
+            let matchesRadio = (radioFilter === 'all') || (rowStatus === radioFilter);
+            let matchesMonth = (monthFilter === "") || (rowDate.startsWith(monthFilter));
+
+            if (matchesSearch && matchesRadio && matchesMonth) {
+                tr.style.display = "";
+                if (counts.hasOwnProperty(rowStatus)) counts[rowStatus]++;
+                if (rowStatus === 'insight') {
+                    let ins = parseFloat(tr.getAttribute('data-insight')) || 0;
+                    let tgt = parseFloat(tr.getAttribute('data-target')) || 0;
+                    if (tgt > 0) { ins >= tgt ? counts.targetHit++ : counts.targetMiss++; }
+                }
+            } else {
+                tr.style.display = "none";
+            }
+        }
+        for (const [key, value] of Object.entries(counts)) { let el = document.getElementById(`count-${key}`); if(el) el.innerText = value; }
+    }
+
+    function getStatusBadge(val) {
+        let text = val ? val.trim() : 'Draft';
+        if (text === '') text = 'Draft';
+        let lowerText = text.toLowerCase();
+        if (lowerText === 'draft') return `<span class="badge badge-status status-draft"><i class="fa-solid fa-file-lines me-1"></i> Draft</span>`;
+        if (lowerText === 'approve') return `<span class="badge badge-status status-approve"><i class="fa-solid fa-circle-check me-1"></i> Approve</span>`;
+        if (lowerText === 'proses') return `<span class="badge badge-status status-proses"><i class="fa-solid fa-spinner fa-spin me-1"></i> Proses</span>`;
+        if (lowerText === 'publish') return `<span class="badge badge-status status-publish"><i class="fa-solid fa-paper-plane me-1"></i> Publish</span>`;
+        if (lowerText === 'insight') return `<span class="badge badge-status status-insight"><i class="fa-solid fa-chart-line me-1"></i> Insight</span>`;
+        if (lowerText === 'batal') return `<span class="badge badge-status status-batal"><i class="fa-solid fa-ban me-1"></i> Batal</span>`;
+        return `<span class="badge badge-status status-kosong">Belum diset</span>`;
+    }
+
+    function getPilarBadge(val) {
+        if (!val) return '-';
+        let text = val.trim(); let lowerText = text.toLowerCase();
+        if (lowerText === 'tindak lanjut') return `<span class="pilar-badge pilar-tindak-lanjut">${text}</span>`;
+        if (lowerText === 'kasitau guse' || lowerText === "kasitau gus'e") return `<span class="pilar-badge pilar-kasitau-guse">${text}</span>`;
+        if (lowerText === 'jember stats') return `<span class="pilar-badge pilar-jember-stats">${text}</span>`;
+        if (lowerText === 'kabar guse' || lowerText === "kabar gus'e") return `<span class="pilar-badge pilar-kabar-guse">${text}</span>`;
+        if (lowerText === 'jember punya') return `<span class="pilar-badge pilar-jember-punya">${text}</span>`;
+        if (lowerText === 'sidak guse' || lowerText === "sidak gus'e") return `<span class="pilar-badge pilar-sidak-guse">${text}</span>`;
+        return `<span class="pilar-badge pilar-default">${text}</span>`;
+    }
+
+    function showPopupDetail(row) {
+        selectedRowData = row; 
+        let rowDataArray = Array.isArray(row) ? row : (row.data || []);
+        
+        let contentHtml = `<div class="text-start mb-4 border-bottom pb-4"><button class="btn btn-success fw-medium rounded-3 px-4" onclick="copyToWA()"><i class="fa-brands fa-whatsapp me-2"></i> Siap Salin WA</button></div><div class="container-fluid px-0">`;
+        globalData.headers.forEach((header, index) => {
+            if(!header) return;
+            let val = rowDataArray[index] !== undefined ? rowDataArray[index] : '-';
+            let cleanHeader = header.toLowerCase().trim();
+            if(cleanHeader === 'status' && (val === '' || val === '-')) val = 'Draft';
+            
+            if(cleanHeader.includes('link') && val.toString().startsWith('http')) {
+                val = `<a href="${val}" target="_blank" class="text-primary text-decoration-underline fw-medium">Buka Tautan Tonton</a>`;
+            } else if (cleanHeader.includes('deadline') || cleanHeader.includes('tanggal')) {
+                val = formatTanggal(val);
+            }
+            
+            contentHtml += `<div class="detail-item"><div class="detail-label">${header}</div><div class="detail-value">${val}</div></div>`;
+        });
+        contentHtml += '</div>';
+        Swal.fire({ title: '📜 Detail Informasi Lengkap', html: contentHtml, showCloseButton: true, confirmButtonText: 'Tutup', confirmButtonColor: '#3b82f6', customClass: { popup: 'p-4 rounded-4' } });
+    }
+
+    function handleQuickModalVisibility() {
+        let status = document.getElementById('editStatusSelect').value.toLowerCase();
+        document.getElementById('quickLinkWrapper').style.display = (status === 'publish' || status === 'insight') ? 'block' : 'none';
+        document.getElementById('quickInsightWrapper').style.display = (status === 'insight') ? 'block' : 'none';
+    }
+
+    function openModalStatus(event, rowNum) {
+        event.stopPropagation();
+        document.getElementById('editRowNum').value = rowNum;
+        
+        let rowData = globalData.rows.find(r => r.rowNum === rowNum);
+        if(rowData) {
+            let dataArr = Array.isArray(rowData) ? rowData : (rowData.data || []);
+            let currentStatus = statusIndexRaw !== -1 ? (dataArr[statusIndexRaw] || 'Draft') : 'Draft';
+            let currentLink = linkIndexRaw !== -1 ? (dataArr[linkIndexRaw] || '') : '';
+            let currentInsight = insightIndexRaw !== -1 ? (dataArr[insightIndexRaw] || '') : '';
+            
+            document.getElementById('editStatusSelect').value = currentStatus;
+            document.getElementById('quickLinkInput').value = currentLink;
+            document.getElementById('quickInsightInput').value = currentInsight;
+        }
+        
+        handleQuickModalVisibility();
+        modalStatusInstance.show();
+    }
+
+    function openEditModal(event, rowNum) {
+        event.stopPropagation(); 
+        let rowToEdit = globalData.rows.find(r => r.rowNum === rowNum);
+        if (!rowToEdit) return;
+
+        document.getElementById('editDataRowNum').value = rowNum;
+        const container = document.getElementById('editFormContainer');
+        container.innerHTML = ''; 
+
+        let rowDataArray = Array.isArray(rowToEdit) ? rowToEdit : (rowToEdit.data || []);
+        let currentStatusRaw = statusIndexRaw !== -1 ? (rowDataArray[statusIndexRaw] || 'draft') : 'draft';
+        let currentStatus = currentStatusRaw.toString().toLowerCase().trim();
+
+        globalData.headers.forEach((header, index) => {
+            if (!header) return;
+            
+            let val = rowDataArray[index] !== undefined ? rowDataArray[index] : '';
+            let cleanHeader = header.toLowerCase().trim();
+            let isTextarea = ['catatan', 'alasan', 'deskripsi', 'referensi', 'alasan membuat konten', 'tujuan', 'target audience'].includes(cleanHeader);
+            let isDate = cleanHeader.includes('tanggal') || cleanHeader.includes('deadline');
+            
+            let extraClass = "";
+            let displayStyle = "block"; 
+            
+            if (cleanHeader.includes('link')) {
+                extraClass = "wrapper-link fade-in";
+                displayStyle = (currentStatus === 'publish' || currentStatus === 'insight') ? 'block' : 'none';
+            } else if (cleanHeader.includes('insight')) {
+                extraClass = "wrapper-insight fade-in";
+                displayStyle = (currentStatus === 'insight') ? 'block' : 'none';
+            }
+
+            let html = `<div class="col-12 col-md-6 mb-2 ${extraClass}" style="display: ${displayStyle};">`;
+            html += `<label class="form-label small fw-bold text-secondary mb-2">${header}</label>`;
+            
+            if (isTextarea) {
+                html += `<textarea class="form-control bg-white px-3 py-2" name="${header}" rows="3" style="border-radius: 12px; border: 1px solid #cbd5e1;">${val}</textarea>`;
+            } else if (isDate) {
+                let parsedDate = "";
+                if (val) {
+                    let d = new Date(val);
+                    if (!isNaN(d.getTime())) {
+                        let y = d.getFullYear();
+                        let m = String(d.getMonth() + 1).padStart(2, '0');
+                        let day = String(d.getDate()).padStart(2, '0');
+                        parsedDate = `${y}-${m}-${day}`;
+                    }
+                }
+                html += `<input type="date" class="form-control bg-white px-3 py-2" name="${header}" value="${parsedDate}" style="border-radius: 12px; border: 1px solid #cbd5e1;">`;
+            } else if (cleanHeader === 'status') {
+                html += `<select class="form-select bg-white px-3 py-2" name="${header}" id="formEditStatus" onchange="handleFormVisibilityByStatus()" style="border-radius: 12px; border: 1px solid #cbd5e1;">
+                            <option value="Draft" ${currentStatus === 'draft' ? 'selected' : ''}>Draft</option>
+                            <option value="Approve" ${currentStatus === 'approve' ? 'selected' : ''}>Approve</option>
+                            <option value="Proses" ${currentStatus === 'proses' ? 'selected' : ''}>Proses</option>
+                            <option value="Publish" ${currentStatus === 'publish' ? 'selected' : ''}>Publish</option>
+                            <option value="Insight" ${currentStatus === 'insight' ? 'selected' : ''}>Insight</option>
+                            <option value="Batal" ${currentStatus === 'batal' ? 'selected' : ''}>Batal</option>
+                         </select>`;
+            } else {
+                html += `<input type="text" class="form-control bg-white px-3 py-2" name="${header}" value="${val}" style="border-radius: 12px; border: 1px solid #cbd5e1;">`;
+            }
+            html += `</div>`;
+            container.innerHTML += html;
+        });
+        modalEditDataInstance.show();
+    }
+
+    function handleFormVisibilityByStatus() {
+        let statusSelect = document.getElementById('formEditStatus');
+        if(!statusSelect) return;
+        
+        let status = statusSelect.value.toLowerCase();
+        let linkWrappers = document.querySelectorAll('.wrapper-link');
+        let insightWrappers = document.querySelectorAll('.wrapper-insight');
+
+        linkWrappers.forEach(el => { el.style.display = (status === 'publish' || status === 'insight') ? 'block' : 'none'; });
+        insightWrappers.forEach(el => { el.style.display = (status === 'insight') ? 'block' : 'none'; });
+    }
+
+    function saveEditedData() {
+        let form = document.getElementById('editDataForm');
+        let formData = new FormData(form);
+        formData.append('action', 'update'); 
+
+        let params = new URLSearchParams();
+        for (const [key, value] of formData.entries()) { params.append(key, value); }
+
+        Swal.fire({
+            title: 'Menyimpan...',
+            text: 'Mengirim data perubahan ke Google Spreadsheet',
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); }
+        });
+
+        fetch(SCRIPT_URL, { method: 'POST', body: params })
+        .then(res => res.json())
+        .then(data => {
+            if(data.status === 'ok') {
+                Swal.fire('Berhasil!', 'Data konten lengkap berhasil diperbarui.', 'success');
+                modalEditDataInstance.hide();
+                loadData();
+            } else { throw new Error(data.message || 'Gagal menyimpan'); }
+        })
+        .catch(err => {
+            Swal.fire('Selesai', 'Perubahan dikirim. Memperbarui dashboard...', 'success');
+            modalEditDataInstance.hide();
+            setTimeout(loadData, 1200);
+        });
+    }
+
+    function saveStatus() {
+        let rowNum = document.getElementById('editRowNum').value;
+        let newStatus = document.getElementById('editStatusSelect').value;
+        let linkPublish = document.getElementById('quickLinkInput').value;
+        let insightData = document.getElementById('quickInsightInput').value;
+
+        let params = new URLSearchParams();
+        params.append('action', 'updateStatus');
+        params.append('rowNum', rowNum);
+        params.append('Status', newStatus); 
+        
+        if (newStatus.toLowerCase() === 'publish' || newStatus.toLowerCase() === 'insight') { params.append('Link', linkPublish); }
+        if (newStatus.toLowerCase() === 'insight') { params.append('Insight', insightData); }
+
+        Swal.fire({
+            title: 'Memperbarui Status...',
+            text: 'Mohon tunggu sebentar',
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); }
+        });
+
+        fetch(SCRIPT_URL, { method: 'POST', body: params })
+        .then(res => res.json())
+        .then(data => {
+            if(data.status === 'ok') {
+                Swal.fire('Diperbarui!', 'Status cepat konten berhasil diubah.', 'success');
+                modalStatusInstance.hide();
+                loadData();
+            } else { throw new Error(data.message || 'Gagal mengubah status'); }
+        })
+        .catch(err => {
+            Swal.fire('Selesai', 'Perintah update status terkirim. Memperbarui...', 'success');
+            modalStatusInstance.hide();
+            setTimeout(loadData, 1200);
+        });
+    }
+
+    // ==========================================
+    // PERBAIKAN: FORMAT SALIN WA SESUAI TEMPLATE
+    // ==========================================
+    function copyToWA() {
+        if (!selectedRowData || !globalData || !globalData.headers) {
+            Swal.fire('Gagal!', 'Data tidak ditemukan untuk disalin.', 'error');
+            return;
+        }
+
+        let rowDataArray = Array.isArray(selectedRowData) ? selectedRowData : (selectedRowData.data || []);
+        let headersLower = globalData.headers.map(h => h ? h.toLowerCase().trim() : '');
+
+        // Fungsi pembantu untuk mengambil data dari kolom
+        const getVal = (keyword) => {
+            let idx = headersLower.findIndex(h => h.includes(keyword));
+            if (idx === -1) return '-';
+            let val = rowDataArray[idx];
+            return (val === undefined || val === '') ? '-' : val;
+        };
+
+        // Mengambil dan menyiapkan variabel
+        let idBrief = getVal('id brief');
+        let judul = getVal('judul');
+        
+        let status = getVal('status');
+        if (status === '-') status = 'Draft';
+        let statusLower = status.toLowerCase();
+        let statusEmoji = '⚪';
+        if(statusLower === 'approve') statusEmoji = '👍';
+        else if(statusLower === 'publish') statusEmoji = '🚀';
+        else if(statusLower === 'proses') statusEmoji = '⏳';
+        else if(statusLower === 'insight') statusEmoji = '📊';
+        else if(statusLower === 'batal') statusEmoji = '❌';
+        else if(statusLower === 'draft') statusEmoji = '📝';
+        let statusTeks = statusEmoji + ' ' + (status.charAt(0).toUpperCase() + status.slice(1));
+
+        let tujuan = getVal('tujuan');
+        let alasan = getVal('alasan');
+        let audience = getVal('audience');
+        let kategori = getVal('kategori');
+        let pilar = getVal('pilar');
+        
+        // Menggabungkan Target
+        let targetReal = getVal('target real');
+        let targetOpt = getVal('target opt');
+        let targetAmb = getVal('target amb');
+        let targetStr = `${targetReal} / ${targetOpt} / ${targetAmb}`;
+        if(targetStr === '- / - / -') targetStr = '-';
+
+        let referensi = getVal('referensi');
+        let catatan = getVal('catatan');
+        let petugas = getVal('petugas');
+        let tglTake = getVal('tanggal take') !== '-' ? formatTanggal(getVal('tanggal take')) : '-';
+        let deadline = getVal('deadline') !== '-' ? formatTanggal(getVal('deadline')) : '-';
+
+        // Merangkai teks persis dengan template yang diminta
+        let waText = `📋 *BRIEF KONTEN*
+━━━━━━━━━━━━━━━━━━━
+
+🆔 *ID Brief:* ${idBrief}
+
+🎯 *Judul:*
+${judul}
+
+🏷️ *Status:* ${statusTeks}
+
+📌 *Tujuan:*
+${tujuan}
+
+💡 *Alasan Membuat Konten:*
+${alasan}
+
+👥 *Target Audience:*
+${audience}
+
+🎬 *Kategori Konten:* ${kategori}
+🏛️ *Konten Pilar:* ${pilar}
+
+📈 *Target (Realistis/Optimis/Ambisius):*
+• ${targetStr}
+
+🔗 *Referensi:*
+${referensi}
+
+📝 *Catatan:*
+${catatan}
+
+👤 *Petugas:* ${petugas}
+📅 *Tanggal Take Video:* ${tglTake}
+⏰ *Deadline:* ${deadline}
+
+━━━━━━━━━━━━━━━━━━━
+✅ Siap dieksekusi, semangat tim! 💪`;
+
+        // Membuat elemen textarea sementara yang transparan
+        let textArea = document.createElement("textarea");
+        textArea.value = waText;
+        
+        // Memastikan elemen tidak merusak layout / scroll
+        textArea.style.position = "fixed";
+        textArea.style.top = "0";
+        textArea.style.left = "0";
+        textArea.style.width = "2em";
+        textArea.style.height = "2em";
+        textArea.style.padding = "0";
+        textArea.style.border = "none";
+        textArea.style.outline = "none";
+        textArea.style.boxShadow = "none";
+        textArea.style.background = "transparent";
+        
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+
+        try {
+            // Melakukan perintah salin
+            let successful = document.execCommand('copy');
+            if (successful) {
+                Swal.fire({
+                    title: 'Tersalin!',
+                    text: 'Teks format WA berhasil disalin ke clipboard.',
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            } else {
+                throw new Error('Gagal mengeksekusi perintah salin');
+            }
+        } catch (err) {
+            console.error('Fallback error: ', err);
+            Swal.fire('Oops!', 'Browser Anda memblokir akses clipboard. Silakan blok dan salin teks secara manual.', 'error');
+        }
+
+        document.body.removeChild(textArea);
+    }
+</script>
+</body>
+</html>
